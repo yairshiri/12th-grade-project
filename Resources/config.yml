@@ -1,0 +1,54 @@
+agent:
+  hyperparameters:
+    alpha: 0.0005
+    epsilon:
+      decay: 0.9999
+      min: 0.1
+      starting: 1.0
+    gamma: 0.95
+  mode: training
+  model:
+    copy interval: 1000
+    layer sizes:
+    - 64
+    - 64
+    learn interval: 4
+  number of actions: 8
+  replay buffer:
+    batch size: 64
+    max size: 100000
+    min size: 1000
+  train until:
+    max episodes: 0
+    max steps: 0
+    max win rate: 0
+    max win rate over x: 100.0
+    to meet: 1
+environment:
+  max steps per episode: 500
+  starting player pos:
+    x: 9
+    y: 9
+game:
+  fps cap: 0
+  maze shape:
+    height: 30
+    width: 30
+  screen size:
+    height: 460
+    width: 680
+logging:
+  graph interval: 100
+  metrics:
+    avg episode reward: false
+    fps: true
+    number of episodes: true
+    number of steps: true
+    number of wins: true
+    win rate: true
+    win rate over x: true
+paths:
+  agent name: DQN_Agent
+  algorithem name: player algorithem
+  environment name: EnemyEnv
+  maze name: weird 30x30
