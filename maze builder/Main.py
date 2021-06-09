@@ -5,12 +5,12 @@ import yaml
 import tkinter as tk
 
 # loading the data from the config file
-config = yaml.safe_load(open(r'D:\Users\owner\PycharmProjects\Project_before_api\Resources\config.yml'))
+config = yaml.safe_load(open(r'D:\Users\owner\PycharmProjects\Project_before_clean_and_testing\Resources\config.yml'))
 maze_shape = (config['game']['maze shape']['width'],config['game']['maze shape']['height'])
 screen_size = (config['game']['screen size']['width'],config['game']['screen size']['height'])
 unit_size = (round(screen_size[0] / maze_shape[0]), round(screen_size[1] / maze_shape[1]))
 WALL_TILE = pg.transform.scale(pg.image.load(
-    open(r'D:\Users\owner\PycharmProjects\Project_before_api\Resources\Sprites\wall tile.png')), unit_size)
+    open(r'D:\Users\owner\PycharmProjects\Project_before_clean_and_testing\Resources\Sprites\wall tile.png')), unit_size)
 screen_size = (round(unit_size[0] * maze_shape[0]), round(unit_size[1] * maze_shape[1]))
 # initializing the pygame screen and clock
 pg.init()

@@ -2,10 +2,10 @@ agent:
   hyperparameters:
     alpha: 0.0005
     epsilon:
-      decay: 0.9999
+      decay: 0.99999
       min: 0.1
       starting: 1.0
-    gamma: 0.95
+    gamma: 0.9
   mode: training
   model:
     copy interval: 1000
@@ -15,7 +15,7 @@ agent:
     learn interval: 4
   number of actions: 8
   replay buffer:
-    batch size: 64
+    batch size: 128
     max size: 100000
     min size: 1000
   train until:
@@ -25,10 +25,10 @@ agent:
     max win rate over x: 100.0
     to meet: 1
 environment:
-  max steps per episode: 500
+  max steps per episode: 700
   starting player pos:
-    x: 9
-    y: 9
+    x: 8
+    y: 8
 game:
   fps cap: 0
   maze shape:

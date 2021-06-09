@@ -7,11 +7,14 @@ import numpy
 
 
 class SumTree:
+    pointer = 0
+
     def __init__(self, capacity):
         self.capacity = capacity
         self.tree = numpy.zeros(2 * capacity - 1)
-        self.data = {'s': [], 'a': [], 'r': [],
-                     's2': [], 'done': []}
+        self.data = {'s': np.empty(capacity, dtype=list), 'a': np.empty(capacity, dtype=int),
+                     'r': np.empty(capacity, dtype=float),
+                     's2': np.empty(capacity, dtype=list), 'done': np.empty(capacity, dtype=bool)}
         self.n_entries = 0
 
     # update to the root node
@@ -41,22 +44,20 @@ class SumTree:
 
     # store priority and sample
     def add(self, p, data):
-        idx = len(self.data['s']) + self.capacity - 1
+        idx = self.pointer + self.capacity - 1
 
         s, a, r, s2, d = data
-        self.data['s'].append(s)
-        self.data['a'].append(a)
-        self.data['r'].append(r)
-        self.data['s2'].append(s2)
-        self.data['done'].append(d)
+        self.data['s'][self.pointer] = s
+        self.data['a'][self.pointer] = a
+        self.data['r'][self.pointer] = r
+        self.data['s2'][self.pointer] = s2
+        self.data['done'][self.pointer] = d
         self.update(idx, p)
 
-        if len(self.data['s']) >= self.capacity:
-            self.data['s'].pop(0)
-            self.data['a'].pop(0)
-            self.data['r'].pop(0)
-            self.data['s2'].pop(0)
-            self.data['done'].pop(0)
+        self.pointer += 1
+
+        if self.pointer >= self.capacity:
+            self.pointer = 0
 
         if self.n_entries < self.capacity:
             self.n_entries += 1
@@ -72,11 +73,13 @@ class SumTree:
     def get(self, s):
         idx = self._retrieve(0, s)
         dataIdx = idx - self.capacity + 1
-
+        if dataIdx > self.pointer:
+            print(1)
         return idx, self.tree[idx], self._get_sample(dataIdx)
 
     def _get_sample(self, idx):
-        return self.data['s'][idx],self.data['a'][idx],self.data['r'][idx],self.data['s2'][idx],self.data['done'][idx]
+        return self.data['s'][idx], self.data['a'][idx], self.data['r'][idx], self.data['s2'][idx], self.data['done'][
+            idx]
 
 
 class Vanilla_Memory(Memory):
@@ -110,13 +113,14 @@ class Vanilla_Memory(Memory):
 
 class Prioritized_Memory(Memory):
     e = 0.01
-    a = 0.6
+    a = 0.7
     b = 0.4
     b_increment = 0.001
 
     def __init__(self, min_size, max_size, batch_size):
         super().__init__(min_size, max_size, batch_size)
         self.tree = SumTree(max_size)
+        del self.memory
 
     def _get_priority(self, error):
         return (np.abs(error) + self.e) ** self.a
@@ -132,6 +136,7 @@ class Prioritized_Memory(Memory):
         batch = []
         idxs = []
         segment = self.tree.total() / self.batch_size
+        segment -= 0.001
         priorities = []
 
         self.b = np.min([1., self.b + self.b_increment])
@@ -140,11 +145,14 @@ class Prioritized_Memory(Memory):
             a = segment * i
             b = segment * (i + 1)
 
-            s = random.uniform(a, b)
+            s = random.uniform(a,b)
             (idx, p, data) = self.tree.get(s)
-            priorities.append(p)
-            batch.append(data)
-            idxs.append(idx)
+            if data[0] is not None:
+                priorities.append(p)
+                batch.append(data)
+                idxs.append(idx)
+            else:
+                print(1)
 
         sampling_probabilities = priorities / self.tree.total()
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.b)
