@@ -82,7 +82,7 @@ class SumTree:
             idx]
 
 
-class Vanilla_Memory(Memory):
+class Uniform_replay(Memory):
     def __init__(self, min_size, max_size, batch_size):
         super().__init__(min_size, max_size, batch_size)
 

@@ -13,11 +13,12 @@ class EnemyEnv(Env):
 
     def __init__(self):
         super().__init__()
-        self.enemy = Enemy.Enemy((0, 0))
+        self.enemy = Enemy.Enemy(0,0)
         self.player = Player.Player(self.enemy.instance.config['environment']['starting player pos']['x'],
                                     self.enemy.instance.config['environment']['starting player pos']['y'])
-        # state is the pos + target pos
+
         self.state = self.set_state()
+        self.observation_space = len(self.state)
         # saving the hotkeys text so we won't have to generate it each render call
         font = pg.font.SysFont('Arial', 20)
         self.HOTKEYS_TEXT = font.render("Options: O. Load brain: L. Save Brain: S. See tracked data: G.", True,
@@ -85,9 +86,11 @@ class EnemyEnv(Env):
     def set_state(self):
         enemy_pos = self.enemy.get_pos()
         player_pos = self.player.get_pos()
-        return (
-            enemy_pos[0], enemy_pos[1],
-            player_pos[0], player_pos[1])
+        ret = enemy_pos+player_pos
+        if self.enemy.sensors is not None:
+            sensors = tuple(x[0] for x in self.enemy.sensors.get_info())
+            ret += sensors
+        return ret
 
     def act(self, dir_num):
         ret = self.instance.switcher[dir_num]
@@ -99,8 +102,6 @@ class EnemyEnv(Env):
     def _step(self, action):
         self.player.update()
         self.enemy.act_on_dir(self.act(action))
-        if self.enemy.check_collision():
-            self.enemy.act_on_dir([-x for x in self.act(action)])
         done = False
         self.enemy.moves -= 1
         info = {'won': False}
@@ -111,7 +112,6 @@ class EnemyEnv(Env):
             done = True
             info['won'] = True
 
-        # state is the pos  + target pos
         self.state = self.set_state()
         if self.enemy.moves == 0:
             done = True

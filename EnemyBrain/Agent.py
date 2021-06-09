@@ -86,7 +86,7 @@ class DQN_Agent(Agent):
                                             kernel_initializer=tf.keras.initializers.RandomNormal()))
         # the output layer
         model.add(tf.keras.layers.Dense(self.num_of_actions, activation='linear'))
-        model.build(input_shape=(1, 4))
+        model.build(input_shape=(1, self.env.observation_space))
         return model
 
     def __init__(self, env):
@@ -96,7 +96,7 @@ class DQN_Agent(Agent):
         self.batch_size = self.hyperparameters['replay buffer']['batch size']
         self.min_buffer_size = self.hyperparameters['replay buffer']['min size']
         self.max_buffer_size = self.hyperparameters['replay buffer']['max size']
-        self.memory = Memory.Vanilla_Memory(self.min_buffer_size, self.max_buffer_size, self.batch_size)
+        self.memory = Memory.Prioritized_Memory(self.min_buffer_size, self.max_buffer_size, self.batch_size)
         self.optimizer = tf.keras.optimizers.Adam(self.alpha)
         self.eps_start = self.hyperparameters['hyperparameters']['epsilon']['starting']
         self.eps_decay = self.hyperparameters['hyperparameters']['epsilon']['decay']

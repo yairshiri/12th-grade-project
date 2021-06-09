@@ -4,6 +4,7 @@ from shapely.geometry import polygon
 import dataSaver
 import os
 import pygame as pg
+from EnemyBrain.sensor import SensorGroup
 
 
 class Entity:
@@ -27,6 +28,8 @@ class Entity:
         # saving the starting position for resetting
         self.startingPos = (self.x, self.y)
 
+        self.sensors = None
+
     def get_pos(self):
         return self.x, self.y
 
@@ -34,25 +37,34 @@ class Entity:
         self.x, self.y = pos
         self.update_rect()
         self.update_instance()
+        if self.sensors is not None:
+            self.sensors.update(p=self.get_mid())
 
     def get_mid(self):
         # getting the middle point of the sprite
         return self.x + 0.5, self.y + 0.5
 
     def act_on_dir(self, dir):
-        # 1 is positive in the direction, -1 is negative. index 0 is x, index 1 is y. we multiply the values because they are maze-scaled (move one maze unit, not one pixel).
-        # action = [x * self.instance.draw_scaler[i] for i, x in enumerate(dir)]
+        # 1 is positive in the direction, -1 is negative. index 0 is x, index 1 is y.
         self.x += dir[0]
-        self.y += dir[1]
-        # updating the rect because we updated the position so the rect also moves
         self.update_rect()
+        if self.check_collision():
+            self.x -= dir[0]
+            self.update_rect()
+        self.y += dir[1]
+        self.update_rect()
+        if self.check_collision():
+            self.y -= dir[1]
+            self.update_rect()
         self.update_instance()
+        if self.sensors is not None:
+            self.sensors.update(p=self.get_mid())
         return dir
 
     def update_rect(self):
         # just sets the rect to the values of the x,y. like in the init method.
         self.rect = polygon.Polygon([(self.x, self.y), (self.x + 1, self.y),
-                                     (self.x + 1, self.y +1),
+                                     (self.x + 1, self.y + 1),
                                      (self.x, self.y + 1)])
 
     def check_collision(self):
@@ -69,8 +81,8 @@ class Entity:
 
     def generate_pos(self):
         # we use -1 so it won't generate positions outside the map
-        x = randint(0, self.instance.maze_shape[0]-1)
-        y = randint(0, self.instance.maze_shape[1]-1)
+        x = randint(0, self.instance.maze_shape[0] - 1)
+        y = randint(0, self.instance.maze_shape[1] - 1)
         rect = polygon.Polygon([(x, y),
                                 (x + 1, y),
                                 (x + 1, y + 1),
@@ -80,7 +92,7 @@ class Entity:
             geom = geom.union(wall.rect)
         if rect.intersects(geom):
             return self.generate_pos()
-        return rect, x, y
+        return x, y
 
     def update_instance(self):
         raise NotImplemented
@@ -88,9 +100,11 @@ class Entity:
     def reset(self):
         self.set_pos(self.startingPos)
         self._reset()
+        if self.sensors is not None:
+            self.sensors.update(p=self.get_mid())
 
     def _reset(self):
         raise NotImplemented
 
     def pos_to_scale(self):
-        return self.x*self.instance.draw_scaler[0],self.y*self.instance.draw_scaler[1]
+        return self.x * self.instance.draw_scaler[0], self.y * self.instance.draw_scaler[1]

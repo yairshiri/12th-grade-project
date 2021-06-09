@@ -1,6 +1,5 @@
 import Entity
 import os
-from EnemyBrain.sensor import SensorGroup
 
 
 class Player(Entity.Entity):
@@ -14,17 +13,13 @@ class Player(Entity.Entity):
             self.algorithem = "".join(open(path, 'r').readlines())
         except Exception as e:
             raise e
-        self.sensors = SensorGroup(p=self.get_mid())
 
     def update(self):
         exec(self.algorithem)
         self.act_on_dir(self.vars[0])
-        if self.check_collision():
-            self.act_on_dir((-self.vars[0][0], -self.vars[0][1]))
-        self.sensors.update(p=self.get_mid())
 
     def _reset(self):
-        self.sensors.update(p=self.get_mid())
+        pass
 
     def update_instance(self):
         self.instance.player_pos = self.get_pos()
