@@ -51,4 +51,4 @@ paths:
   agent name: DQN_Agent
   algorithem name: player algorithem
   environment name: EnemyEnv
-  maze name: weird 30x30
+  maze name: empty 30x30

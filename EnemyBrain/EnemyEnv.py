@@ -28,10 +28,10 @@ class EnemyEnv(Env):
         self.enemy.reset()
         self.player.reset()
         self.state = self.set_state()
-        title = f"Episode {self.metrics['number of episodes'].get_latest()}."
+        title = f"Episode {self.latest_data['number of episodes']}."
         # if we have a privious episode to display
-        if self.metrics['number of episodes'].get_latest() > 1:
-            title += f" Episode {self.metrics['number of episodes'].get_latest() - 1} was a {'win' if self.metrics['number of wins'].get_latest() else 'lost'}."
+        if self.latest_data['number of episodes'] > 1:
+            title += f" Episode {self.latest_data['number of episodes'] - 1} was a {'win' if self.metrics['wins'].vals[-1] else 'lost'}."
         title += f" {self.enemy.instance.agent_name} on {self.enemy.instance.map_name}."
         pg.display.set_caption(title)
 
@@ -56,19 +56,19 @@ class EnemyEnv(Env):
         # drawing the
         window = tk.Tk()
         window.iconphoto(False, tk.PhotoImage(file=self.enemy.instance.icon))
-        episode_num = self.metrics['number of episodes'].get_latest()
-        window.title(f"Episode {episode_num}, Step {self.metrics['number of steps'].get_latest()}")
+        episode_num = self.latest_data['number of episodes']
+        window.title(f"Episode {episode_num}, Step {self.latest_data['number of steps']}")
 
         def graph():
-            win_rates = self.metrics['win rate over x'].vals
+            win_rates = self.win_rates_over_x
             plt.plot(range(episode_num - len(win_rates), episode_num),
                      win_rates)
             plt.xlabel('episode number')
             plt.ylabel('win rate %')
             plt.title(
-                f"win rates over the last {self.metrics['win rate over x'].count_val} episodes of the last {len(win_rates)} episodes")
+                f"win rates over the last {min(len(win_rates),100)} episodes of the last {len(win_rates)} episodes")
             plt.show()
-            plt.plot(range(episode_num), self.metrics['win rate'].vals)
+            plt.plot(range(episode_num), self.win_rates)
             plt.xlabel('episode number')
             plt.ylabel('win rate %')
             plt.title('win rates over the last {} episodes'.format(episode_num))

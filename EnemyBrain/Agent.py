@@ -123,7 +123,7 @@ class DQN_Agent(Agent):
         if not self.memory.is_ready():
             return
         self.update_eps()
-        if self.env.get_metric('number of steps') % self.hyperparameters['model']['learn interval'] == 0:
+        if self.env.latest_data['number of steps'] % self.hyperparameters['model']['learn interval'] == 0:
             if self.memory_mode == 'PER':
                 exp, idx, is_weights = self.memory.get_batch()
                 states, actions, rewards, states_next, dones = zip(*exp)
@@ -264,9 +264,9 @@ class DDQN_Agent(Agent):
         if not self.memory.is_ready():
             return
         self.update_eps()
-        if self.env.get_metric('number of steps') % self.hyperparameters['model']['copy interval'] == 0:
+        if self.env.latest_data['number of steps'] % self.hyperparameters['model']['copy interval'] == 0:
             self.copy_weights()
-        if self.env.get_metric('number of steps') % self.hyperparameters['model']['learn interval'] == 0:
+        if  self.env.latest_data['number of steps'] % self.hyperparameters['model']['learn interval'] == 0:
             if self.memory_mode == 'PER':
                 exp, idx, is_weights = self.memory.get_batch()
                 states, actions, rewards, states_next, dones = zip(*exp)

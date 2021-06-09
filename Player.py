@@ -1,8 +1,8 @@
-import Entity
+from EnemyBrain.BaseClasses import Entity
 import os
 
 
-class Player(Entity.Entity):
+class Player(Entity):
     def __init__(self, x, y, sprite_name=None):
         super().__init__(x, y, sprite_name)
 

@@ -1,12 +1,10 @@
-from EnemyBrain.sensor import SensorGroup
-import Entity
-from random import randint
+from EnemyBrain.BaseClasses import Entity
 
 
-class Enemy(Entity.Entity):
+class Enemy(Entity):
 
-    def __init__(self, x,y):
-        super().__init__(x,y)
+    def __init__(self, x, y):
+        super().__init__(x, y)
         self.moves = self.instance.config['environment']['max steps per episode']
         # (255,0,0) is red
         self.color = (255, 0, 0)
@@ -18,14 +16,6 @@ class Enemy(Entity.Entity):
         self.bestDistance = self.instance.max_distance
         self.prevDistance = self.instance.max_distance
         self.moves = self.instance.config['environment']['max steps per episode']
-        if self.sensors is not None:
-            self.sensors.update(p=self.get_mid())
-
-    def set_sensors(self):
-        self.sensors = SensorGroup(p=self.get_mid())
-
-    def update_pos(self, pos):
-        self.set_pos(pos)
 
     def update_instance(self):
         self.instance.enemy_pos = self.get_pos()
