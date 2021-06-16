@@ -32,8 +32,7 @@ class EpsGreedyBoltzmann(EpsGreedy):
     def select_action(self, q_vals):
         self._update_eps()
         if np.random.random() < self.epsilon:
-            p = boltzmann(q_vals)
-            print(p)
+            p = boltzmann(q_vals,self.epsilon)
             return np.random.choice(self.num_actions, p=p)
         else:
             return np.argmax(q_vals)
@@ -46,5 +45,8 @@ class Boltzmann(EpsGreedy):
     def select_action(self, q_vals):
         self._update_eps()
         p = boltzmann(q_vals,self.epsilon)
-        print(p)
         return np.random.choice(self.num_actions,p=p)
+
+    def get_data(self):
+        return {'tau':self.epsilon}
+

@@ -12,7 +12,7 @@ agent:
   number of actions: 8
   policy:
     epsilon:
-      decay: 0.9999
+      decay: 0.99999
       min: 0.1
       starting: 1.0
     type: bepsgreedy
@@ -29,7 +29,7 @@ agent:
     to meet: 1
   use sensors: false
 environment:
-  max steps per episode: 300
+  max steps per episode: 700
   starting player pos:
     x: 10
     y: 9

@@ -252,7 +252,7 @@ class Env(GymEnv):
             self.metrics['rewards'].vals[-1] /= self.metrics['steps'].vals[-1]
             self.metrics['rewards'].add_value(0)
             self.metrics['steps'].add_value(0)
-            self.metrics['fps'].vals = []
+            self.metrics['fps'].vals = [0]
             if self.win_rates is not None:
                 self.win_rates.append(self.latest_data['win rate'])
             if self.win_rates_over_x is not None:

@@ -8,16 +8,18 @@ from shapely.geometry import polygon
 
 
 def softmax(values, limit):
-    return (values / np.sum(values)) * min(limit, max(np.max(values, 1)))
+    return (values / np.sum(values)) * min(limit, max(np.max(values), 1))
 
 
 def squash(values, limit):
-    return (values / np.max(values)) * min(limit, max(np.max(values, 1)))
+    if np.max(values) == 0:
+        return values
+    return (values / np.max(values)) * min(limit, np.max(values))
 
 
 def boltzmann(values,tau=1):
-    values = squash(np.atleast_2d(values), 10)
-    exp = np.exp(values/tau)
+    values = squash(np.atleast_2d(values/tau), 10)
+    exp = np.exp(values)
     p = exp / np.sum(exp)
     return p[0]
 

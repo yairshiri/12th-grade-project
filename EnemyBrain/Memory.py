@@ -73,8 +73,6 @@ class SumTree:
     def get(self, s):
         idx = self._retrieve(0, s)
         dataIdx = idx - self.capacity + 1
-        if dataIdx > self.pointer:
-            print(1)
         return idx, self.tree[idx], self._get_sample(dataIdx)
 
     def _get_sample(self, idx):
@@ -151,14 +149,12 @@ class Prioritized_Memory(Memory):
                 priorities.append(p)
                 batch.append(data)
                 idxs.append(idx)
-            else:
-                print(1)
 
         sampling_probabilities = priorities / self.tree.total()
-        is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.b)
-        is_weight /= is_weight.max()
+        is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.b)
+        is_weights /= is_weights.max()
 
-        return batch, idxs, is_weight
+        return batch, idxs, is_weights
 
     def update(self, idx, error):
         p = self._get_priority(error)
