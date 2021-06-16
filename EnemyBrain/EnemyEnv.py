@@ -11,10 +11,11 @@ class EnemyEnv(Env):
     BLACK = (0, 0, 0)
     CLOCK = pg.time.Clock()
     POSITIVE_REWARD = 500
-    NEGATIVE_REWARD = -1
+    NEGATIVE_REWARD = 0
+
     def __init__(self):
         super().__init__()
-        self.enemy = Enemy.Enemy(0,0)
+        self.enemy = Enemy.Enemy(0, 0)
         self.player = Player.Player(self.enemy.instance.config['environment']['starting player pos']['x'],
                                     self.enemy.instance.config['environment']['starting player pos']['y'])
         if self.enemy.instance.config['agent']['use sensors'] is True:
@@ -68,9 +69,9 @@ class EnemyEnv(Env):
             plt.xlabel('episode number')
             plt.ylabel('win rate %')
             plt.title(
-                f"win rates over the last {min(len(win_rates),100)} episodes of the last {len(win_rates)} episodes")
+                f"win rates over the last {min(len(win_rates), 100)} episodes of the last {len(win_rates)} episodes")
             plt.show()
-            plt.plot(range(episode_num-1), self.win_rates)
+            plt.plot(range(episode_num - 1), self.win_rates)
             plt.xlabel('episode number')
             plt.ylabel('win rate %')
             plt.title('win rates over the last {} episodes'.format(episode_num))
@@ -88,7 +89,7 @@ class EnemyEnv(Env):
     def set_state(self):
         enemy_pos = self.enemy.get_pos()
         player_pos = self.player.get_pos()
-        ret = enemy_pos+player_pos
+        ret = enemy_pos + player_pos
         if self.enemy.sensors is not None:
             sensors = tuple(x[0] for x in self.enemy.sensors.get_info())
             ret += sensors

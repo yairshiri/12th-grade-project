@@ -1,10 +1,6 @@
 agent:
   hyperparameters:
     alpha: 0.0005
-    epsilon:
-      decay: 0.99999
-      min: 0.1
-      starting: 1.0
     gamma: 0.9
   mode: training
   model:
@@ -14,11 +10,17 @@ agent:
     - 64
     learn interval: 4
   number of actions: 8
+  policy:
+    epsilon:
+      decay: 0.9999
+      min: 0.1
+      starting: 1.0
+    type: bepsgreedy
   replay buffer:
     batch size: 128
     max size: 100000
     min size: 1000
-    use prioritized: false
+    type: per
   train until:
     max episodes: 0
     max steps: 0
@@ -27,15 +29,15 @@ agent:
     to meet: 1
   use sensors: false
 environment:
-  max steps per episode: 700
+  max steps per episode: 300
   starting player pos:
-    x: 8
-    y: 8
+    x: 10
+    y: 9
 game:
   fps cap: 0
   maze shape:
-    height: 20
-    width: 20
+    height: 30
+    width: 30
   screen size:
     height: 460
     width: 680
@@ -53,4 +55,4 @@ paths:
   agent name: DQN_Agent
   algorithem name: player algorithem
   environment name: EnemyEnv
-  maze name: empty 20x20
+  maze name: weird 30x30

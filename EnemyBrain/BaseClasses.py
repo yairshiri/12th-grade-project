@@ -1,4 +1,7 @@
 import time
+
+import numpy as np
+
 from EnemyBrain import Metrics
 from gym import Env as GymEnv
 import tkinter as tk
@@ -8,6 +11,7 @@ import dataSaver
 import os
 import pygame as pg
 from EnemyBrain.sensor import SensorGroup
+from EnemyBrain import Policies
 
 
 class Entity:
@@ -122,6 +126,17 @@ class Agent:
         self.hyperparameters = dataSaver.DataSaver.get_instance().agent_hyperparameters
         self.limits = self.hyperparameters['train until']
         self.mode = self.hyperparameters['mode']
+        nb_actions = self.hyperparameters['number of actions']
+        decay = self.hyperparameters['policy']['epsilon']['decay']
+        min_value = self.hyperparameters['policy']['epsilon']['min']
+        starting = self.hyperparameters['policy']['epsilon']['starting']
+        assert self.hyperparameters['policy']['type'].lower() in ['epsgreedy','bepsgreedy','b']
+        if self.hyperparameters['policy']['type'].lower() == 'epsgreedy':
+            self.policy = Policies.EpsGreedy(nb_actions,decay,min_value,starting)
+        elif self.hyperparameters['policy']['type'].lower() == 'bepsgreedy':
+            self.policy = Policies.EpsGreedyBoltzmann(nb_actions,decay,min_value,starting)
+        elif self.hyperparameters['policy']['type'].lower() == 'b':
+            self.policy = Policies.Boltzmann(nb_actions,decay,min_value,starting)
         # verifying the mode
         if self.mode not in ['training', 'testing']:
             raise Exception(
@@ -237,6 +252,7 @@ class Env(GymEnv):
             self.metrics['rewards'].vals[-1] /= self.metrics['steps'].vals[-1]
             self.metrics['rewards'].add_value(0)
             self.metrics['steps'].add_value(0)
+            self.metrics['fps'].vals = []
             if self.win_rates is not None:
                 self.win_rates.append(self.latest_data['win rate'])
             if self.win_rates_over_x is not None:
@@ -252,7 +268,8 @@ class Env(GymEnv):
 
     def get_metrics_vals(self):
         ret = {}
-        for val in self.callback_func():
+        for func in self.callback_func():
+            val = func()
             ret[val[1]] = val[0]
         return ret
 
@@ -272,20 +289,23 @@ class Env(GymEnv):
     def get_callback_func(self):
         funcs = []
         funcs.append(lambda: (self.metrics['rewards'].vals[-1], 'avg episode reward'))
-        funcs.append(lambda: (self.metrics['fps'].vals[-1], 'fps'))
+        funcs.append(lambda: (
+            np.round(np.sum(self.metrics['fps'].vals[-len(self.metrics['fps'].vals):]) / len(self.metrics['fps'].vals),
+                     4),
+            'fps'))
         funcs.append(lambda: (len(self.metrics['steps'].vals), 'number of episodes'))
         funcs.append(lambda: (self.metrics['steps'].vals[-1], 'number of steps'))
         funcs.append(lambda: (self.metrics['wins'].vals.count(True), 'number of wins'))
         funcs.append(lambda: (
-        round(100 * self.metrics['wins'].vals.count(True) / max(len(self.metrics['wins'].vals),1), 4), 'win rate'))
+            round(100 * self.metrics['wins'].vals.count(True) / max(len(self.metrics['wins'].vals), 1), 4), 'win rate'))
 
         def func():
             amount = min(len(self.metrics['wins'].vals), 100)
-            return round(100 * self.metrics['wins'].vals[-amount:].count(True) / max(amount,1), 4), 'win rate over x'
+            return round(100 * self.metrics['wins'].vals[-amount:].count(True) / max(amount, 1), 4), 'win rate over x'
 
         funcs.append(func)
 
-        return lambda: [x() for x in funcs]
+        return lambda: [x for x in funcs]
 
 
 class Memory:

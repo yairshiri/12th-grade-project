@@ -3,9 +3,23 @@ import os
 import wall
 import dataSaver
 import pickle
+import numpy as np
 from shapely.geometry import polygon
-import functools
-import time
+
+
+def softmax(values, limit):
+    return (values / np.sum(values)) * min(limit, max(np.max(values, 1)))
+
+
+def squash(values, limit):
+    return (values / np.max(values)) * min(limit, max(np.max(values, 1)))
+
+
+def boltzmann(values,tau=1):
+    values = squash(np.atleast_2d(values), 10)
+    exp = np.exp(values/tau)
+    p = exp / np.sum(exp)
+    return p[0]
 
 
 def load_content():

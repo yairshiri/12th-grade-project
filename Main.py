@@ -38,7 +38,6 @@ while True:
                     agent.load()
 
         action = agent.action(state)
-
         # getting the timestep
         next_state, reward, done, info = agent.env.step(action)
         # learning only if the mode is training
