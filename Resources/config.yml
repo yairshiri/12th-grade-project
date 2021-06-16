@@ -18,12 +18,14 @@ agent:
     batch size: 128
     max size: 100000
     min size: 1000
+    use prioritized: false
   train until:
     max episodes: 0
     max steps: 0
     max win rate: 0
     max win rate over x: 100.0
     to meet: 1
+  use sensors: false
 environment:
   max steps per episode: 700
   starting player pos:
@@ -32,8 +34,8 @@ environment:
 game:
   fps cap: 0
   maze shape:
-    height: 30
-    width: 30
+    height: 20
+    width: 20
   screen size:
     height: 460
     width: 680
@@ -51,4 +53,4 @@ paths:
   agent name: DQN_Agent
   algorithem name: player algorithem
   environment name: EnemyEnv
-  maze name: empty 30x30
+  maze name: empty 20x20

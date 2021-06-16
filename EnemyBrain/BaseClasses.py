@@ -192,10 +192,11 @@ class Env(GymEnv):
                                   self.instance.config['logging']['metrics']['fps']),
             'steps': Metrics.Metric('latest',
                                     self.instance.config['logging']['metrics']['number of steps']),
-            'episodes': Metrics.Metric('latest',
-                                       self.instance.config['logging']['metrics']['number of episodes']),
             'wins': Metrics.Metric('count',
                                    self.instance.config['logging']['metrics']['number of wins'], True)}
+        self.metrics['rewards'].add_value(0)
+        self.metrics['steps'].add_value(0)
+        self.metrics['fps'].add_value(0)
         self.state = None
         self.tic = time.perf_counter()
         self.callbacks = [key if val is True else "" for key, val in self.instance.config['logging']['metrics'].items()]
@@ -276,11 +277,11 @@ class Env(GymEnv):
         funcs.append(lambda: (self.metrics['steps'].vals[-1], 'number of steps'))
         funcs.append(lambda: (self.metrics['wins'].vals.count(True), 'number of wins'))
         funcs.append(lambda: (
-        round(100 * self.metrics['wins'].vals.count(True) / len(self.metrics['wins'].vals), 4), 'win rate'))
+        round(100 * self.metrics['wins'].vals.count(True) / max(len(self.metrics['wins'].vals),1), 4), 'win rate'))
 
         def func():
             amount = min(len(self.metrics['wins'].vals), 100)
-            return round(100 * self.metrics['wins'].vals[:amount].count(True) / amount, 4), 'win rate over x'
+            return round(100 * self.metrics['wins'].vals[-amount:].count(True) / max(amount,1), 4), 'win rate over x'
 
         funcs.append(func)
 

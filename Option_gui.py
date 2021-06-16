@@ -3,7 +3,6 @@ import yaml
 from math import ceil, sqrt
 import dataSaver
 import os
-
 instance = dataSaver.DataSaver.get_instance()
 
 
@@ -36,13 +35,18 @@ def check_type(val1, val2):
 
 def change_type(val1, val2):
     if isinstance(val2, str):
-        if not check_iterable(val1):
+        if not check_iterable(val1) and not isinstance(val1,bool):
             return type(val1)(val2)
         else:
             if isinstance(val1, list):
                 val2 = type(val1)(val2[1:-1].split(','))
                 for i, item in enumerate(val2):
                     val2[i] = item.replace(" ", "")
+            elif isinstance(val1,bool):
+                if val2 in ["false", "False"]:
+                    val2 = False
+                elif val2 in ["True","true"]:
+                    val2 = True
     return type(val1)(val2)
 
 

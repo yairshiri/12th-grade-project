@@ -79,7 +79,6 @@ class SARSA_Agent(Q_Agent):
 class DQN_Agent(Agent):
     def _build_model(self):
         model = tf.keras.models.Sequential()
-        # the input layer
         # adding the layers in the amounts specified
         for amount in self.hyperparameters['model']['layer sizes']:
             model.add(tf.keras.layers.Dense(amount, activation='selu',
@@ -96,7 +95,10 @@ class DQN_Agent(Agent):
         self.batch_size = self.hyperparameters['replay buffer']['batch size']
         self.min_buffer_size = self.hyperparameters['replay buffer']['min size']
         self.max_buffer_size = self.hyperparameters['replay buffer']['max size']
-        self.memory = Memory.Prioritized_Memory(self.min_buffer_size, self.max_buffer_size, self.batch_size)
+        self.memory = Memory.Prioritized_Memory(self.min_buffer_size, self.max_buffer_size, self.batch_size) if \
+        self.hyperparameters['replay buffer']['use prioritized'] else Memory.Uniform_replay(self.min_buffer_size,
+                                                                                            self.max_buffer_size,
+                                                                                            self.batch_size)
         self.optimizer = tf.keras.optimizers.Adam(self.alpha)
         self.eps_start = self.hyperparameters['hyperparameters']['epsilon']['starting']
         self.eps_decay = self.hyperparameters['hyperparameters']['epsilon']['decay']
@@ -127,8 +129,6 @@ class DQN_Agent(Agent):
             if self.memory_mode == 'PER':
                 exp, idx, is_weights = self.memory.get_batch()
                 states, actions, rewards, states_next, dones = zip(*exp)
-                if len(states) < self.batch_size:
-                    print(1)
             else:
                 states, actions, rewards, states_next, dones = self.memory.get_batch()
             value_next = np.nanmax(self.predict(states_next), axis=1)
@@ -266,7 +266,7 @@ class DDQN_Agent(Agent):
         self.update_eps()
         if self.env.latest_data['number of steps'] % self.hyperparameters['model']['copy interval'] == 0:
             self.copy_weights()
-        if  self.env.latest_data['number of steps'] % self.hyperparameters['model']['learn interval'] == 0:
+        if self.env.latest_data['number of steps'] % self.hyperparameters['model']['learn interval'] == 0:
             if self.memory_mode == 'PER':
                 exp, idx, is_weights = self.memory.get_batch()
                 states, actions, rewards, states_next, dones = zip(*exp)

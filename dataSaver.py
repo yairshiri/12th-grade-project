@@ -1,8 +1,7 @@
-from math import ceil
-import yaml
-import shapely.strtree
-from shapely.geometry import polygon
 import os
+import shapely.strtree
+import yaml
+
 
 class DataSaver:
     __instance__ = None
@@ -10,10 +9,10 @@ class DataSaver:
     agent_name = config['paths']['agent name']
     map_name = config['paths']['maze name']
     STRtree = None
-    screen_size = (config['game']['screen size']['width'],config['game']['screen size']['height'])
-    maze_shape = (config['game']['maze shape']['width'],config['game']['maze shape']['height'])
+    screen_size = (config['game']['screen size']['width'], config['game']['screen size']['height'])
+    maze_shape = (config['game']['maze shape']['width'], config['game']['maze shape']['height'])
     draw_scaler = (round(screen_size[0] / maze_shape[0]), round(screen_size[1] / maze_shape[1]))
-    max_distance = screen_size[0] * screen_size[1]
+    max_distance = (maze_shape[0] ** 2 + maze_shape[1] ** 2) ** 0.5
     player_pos = None
     enemy_pos = None
     wall_img = None
@@ -61,4 +60,3 @@ class DataSaver:
         instance = DataSaver.get_instance()
         objcts = [x.rect for x in instance.walls]
         instance.STRtree = shapely.strtree.STRtree(objcts)
-

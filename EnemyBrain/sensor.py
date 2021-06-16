@@ -27,7 +27,7 @@ class Sensor:
         return x1, y1, x2, y2
 
     def closest_wall(self):
-        min_dis = 1000
+        min_dis = self.max_distance
         intersects = self.instance.STRtree.query(self.line)
         p = polygon.Point(self.line.coords[0])
         ret = polygon.Point(self.get_points()[2:])

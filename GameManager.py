@@ -8,13 +8,12 @@ import functools
 import time
 
 
-
-
 def load_content():
     # initiating all of the values that need to be initiated
     instance = dataSaver.DataSaver.get_instance()
     ss = (
-    round(instance.draw_scaler[0] * instance.maze_shape[0]), round(instance.draw_scaler[1] * instance.maze_shape[1]))
+        round(instance.draw_scaler[0] * instance.maze_shape[0]),
+        round(instance.draw_scaler[1] * instance.maze_shape[1]))
     instance.screen_size = ss
     if not instance.config['paths']['maze name'] is None:
         with open(os.path.join("maze builder", f"{instance.config['paths']['maze name']}.pickle"), 'rb') as f:
@@ -29,5 +28,6 @@ def load_content():
                                            instance.draw_scaler)
     instance.set_tree()
 
-    instance.window_limit = polygon.Polygon([(0, 0), (instance.maze_shape[0], 0), instance.maze_shape, (0, instance.maze_shape[1])])
+    instance.window_limit = polygon.Polygon(
+        [(0, 0), (instance.maze_shape[0], 0), instance.maze_shape, (0, instance.maze_shape[1])])
     pg.font.init()

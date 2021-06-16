@@ -4,7 +4,7 @@ class Metric:
         self.count_val = count_val
         self.type = ret_type
         self.active = active
-        self.vals = [0]
+        self.vals = []
 
     def get_latest(self):
         return self.vals[-1]

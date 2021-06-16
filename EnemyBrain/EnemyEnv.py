@@ -10,13 +10,15 @@ class EnemyEnv(Env):
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     CLOCK = pg.time.Clock()
-
+    POSITIVE_REWARD = 500
+    NEGATIVE_REWARD = -1
     def __init__(self):
         super().__init__()
         self.enemy = Enemy.Enemy(0,0)
         self.player = Player.Player(self.enemy.instance.config['environment']['starting player pos']['x'],
                                     self.enemy.instance.config['environment']['starting player pos']['y'])
-
+        if self.enemy.instance.config['agent']['use sensors'] is True:
+            self.enemy.set_sensors()
         self.state = self.set_state()
         self.observation_space = len(self.state)
         # saving the hotkeys text so we won't have to generate it each render call
@@ -68,7 +70,7 @@ class EnemyEnv(Env):
             plt.title(
                 f"win rates over the last {min(len(win_rates),100)} episodes of the last {len(win_rates)} episodes")
             plt.show()
-            plt.plot(range(episode_num), self.win_rates)
+            plt.plot(range(episode_num-1), self.win_rates)
             plt.xlabel('episode number')
             plt.ylabel('win rate %')
             plt.title('win rates over the last {} episodes'.format(episode_num))
@@ -106,9 +108,10 @@ class EnemyEnv(Env):
         self.enemy.moves -= 1
         info = {'won': False}
         distance = self.touches()
-        reward = -1
+        reward = self.NEGATIVE_REWARD
+        # if cought
         if distance == 0:
-            reward = 500
+            reward = self.POSITIVE_REWARD
             done = True
             info['won'] = True
 
