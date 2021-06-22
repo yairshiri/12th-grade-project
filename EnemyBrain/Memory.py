@@ -80,7 +80,7 @@ class SumTree:
             idx]
 
 
-class Uniform_replay(Memory):
+class Uniform(Memory):
     def __init__(self, min_size, max_size, batch_size):
         super().__init__(min_size, max_size, batch_size)
 
@@ -109,7 +109,7 @@ class Uniform_replay(Memory):
         return states, actions, rewards, states_next, dones
 
 
-class Prioritized_Memory(Memory):
+class Prioritized(Memory):
     e = 0.01
     a = 0.7
     b = 0.4
@@ -124,7 +124,7 @@ class Prioritized_Memory(Memory):
         return (np.abs(error) + self.e) ** self.a
 
     def is_ready(self):
-        return len(self.tree.data['s']) >= self.min_size
+        return self.tree.n_entries >= self.min_size
 
     def add_exp(self, error, sample):
         p = self._get_priority(error)

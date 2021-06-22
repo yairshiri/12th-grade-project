@@ -3,20 +3,21 @@ import pickle
 import pygame as pg
 import yaml
 import tkinter as tk
+import pathlib
 
+resources_path = pathlib.Path(__file__).parent.parent.absolute().joinpath("resources")
 # loading the data from the config file
-config = yaml.safe_load(open(r'D:\Users\owner\PycharmProjects\Project_before_clean_and_testing\Resources\config.yml'))
-maze_shape = (config['game']['maze shape']['width'],config['game']['maze shape']['height'])
-screen_size = (config['game']['screen size']['width'],config['game']['screen size']['height'])
+config = yaml.safe_load(open(resources_path.joinpath('config.yml')))
+maze_shape = (config['game']['maze shape']['width'], config['game']['maze shape']['height'])
+screen_size = (config['game']['screen size']['width'], config['game']['screen size']['height'])
 unit_size = (round(screen_size[0] / maze_shape[0]), round(screen_size[1] / maze_shape[1]))
 WALL_TILE = pg.transform.scale(pg.image.load(
-    open(r'D:\Users\owner\PycharmProjects\Project_before_clean_and_testing\Resources\Sprites\wall tile.png')), unit_size)
+    open(resources_path.joinpath(r'Sprites\wall tile.png'))), unit_size)
 screen_size = (round(unit_size[0] * maze_shape[0]), round(unit_size[1] * maze_shape[1]))
 # initializing the pygame screen and clock
 pg.init()
 screen = pg.display.set_mode(screen_size)
 clock = pg.time.Clock()
-
 
 # initializing the walls array and the starting pos and ending pos variables. they are used to save and create walls
 walls = []
@@ -31,7 +32,7 @@ def get_walls():
     # starting new frame
     pg.display.update()
     # drawing the back ground. (255,255,255) is RGB for white.
-    screen.fill((255,255,255))
+    screen.fill((255, 255, 255))
 
     # drawing the lines
     for x in range(maze_shape[0]):
@@ -99,6 +100,7 @@ def locs(wall):
     for x in range(wall['width']):
         for y in range(wall['height']):
             yield (wall['p'][0] + x) * unit_size[0], (wall['p'][1] + y) * unit_size[1]
+
 
 while True:
     get_walls()

@@ -1,24 +1,24 @@
 import time
 
 import numpy as np
-
-from EnemyBrain import Metrics
 from gym import Env as GymEnv
-import tkinter as tk
 from random import randint
 from shapely.geometry import polygon
 import dataSaver
 import os
 import pygame as pg
-from EnemyBrain.sensor import SensorGroup
+from EnemyBrain.Sensor import SensorGroup
 from EnemyBrain import Policies
+import tkinter as tk
+import matplotlib.pyplot as plt
+from utils import alert
 
 
 class Entity:
     def __init__(self, x, y, sprite_name=None):
         # if a sprite name is specified, load and save it
         if sprite_name is not None:
-            self.sprite = pg.transform.scale(pg.image.load(os.path.join(r"../Resources/Sprites", f"{sprite_name}.png")),
+            self.sprite = pg.transform.scale(pg.image.load(os.path.join(r"/Resources/Sprites", f"{sprite_name}.png")),
                                              self.instance.draw_scaler)
         # getting an instance of the data saver
         self.instance = dataSaver.DataSaver.get_instance()
@@ -130,17 +130,17 @@ class Agent:
         decay = self.hyperparameters['policy']['epsilon']['decay']
         min_value = self.hyperparameters['policy']['epsilon']['min']
         starting = self.hyperparameters['policy']['epsilon']['starting']
-        assert self.hyperparameters['policy']['type'].lower() in ['epsgreedy','bepsgreedy','b']
+        assert self.hyperparameters['policy']['type'].lower() in ['epsgreedy', 'bepsgreedy', 'b']
         if self.hyperparameters['policy']['type'].lower() == 'epsgreedy':
-            self.policy = Policies.EpsGreedy(nb_actions,decay,min_value,starting)
+            self.policy = Policies.EpsGreedy(nb_actions, decay, min_value, starting)
         elif self.hyperparameters['policy']['type'].lower() == 'bepsgreedy':
-            self.policy = Policies.EpsGreedyBoltzmann(nb_actions,decay,min_value,starting)
+            self.policy = Policies.EpsGreedyBoltzmann(nb_actions, decay, min_value, starting)
         elif self.hyperparameters['policy']['type'].lower() == 'b':
-            self.policy = Policies.Boltzmann(nb_actions,decay,min_value,starting)
+            self.policy = Policies.Boltzmann(nb_actions, decay, min_value, starting)
         # verifying the mode
         if self.mode not in ['training', 'testing']:
-            raise Exception(
-                f"Mode {self.mode} is an unrecognized mode! The only allowed modes are training and testing")
+            alert(f"Mode {self.mode} is an unrecognized mode! The only allowed modes are training and testing")
+            quit()
 
     def learn(self, *args, **kwargs):
         raise NotImplemented
@@ -149,31 +149,9 @@ class Agent:
         raise NotImplemented
 
     def load(self):
-        name = self._get_save_name("Choose policy file name")
-        self._load(name)
-
-    def save(self):
-        name = self._get_save_name("Choose policy file name")
-        self._save(name)
-
-    def _get_save_name(self, text):
-        window = tk.Tk()
-        window.title(text)
-        window.iconphoto(False, tk.PhotoImage(file=self.env.enemy.instance.icon))
-        label = tk.Label(window, text=text)
-        label.grid(row=0, column=0)
-        var = tk.StringVar()
-        entry = tk.Entry(window, textvariable=var)
-        entry.grid(row=0, column=1)
-        button = tk.Button(window, text="Done", command=window.destroy)
-        button.grid(row=1, column=0)
-        window.mainloop()
-        return var.get()
-
-    def _load(self, f):
         raise NotImplemented
 
-    def _save(self, f):
+    def save(self):
         raise NotImplemented
 
     def check_stop(self):
@@ -201,17 +179,13 @@ class Env(GymEnv):
     def __init__(self):
         self.instance = dataSaver.DataSaver.get_instance()
         self.metrics = {
-            'rewards': Metrics.Metric('latest',
-                                      self.instance.config['logging']['metrics']['avg episode reward']),
-            'fps': Metrics.Metric('latest',
-                                  self.instance.config['logging']['metrics']['fps']),
-            'steps': Metrics.Metric('latest',
-                                    self.instance.config['logging']['metrics']['number of steps']),
-            'wins': Metrics.Metric('count',
-                                   self.instance.config['logging']['metrics']['number of wins'], True)}
-        self.metrics['rewards'].add_value(0)
-        self.metrics['steps'].add_value(0)
-        self.metrics['fps'].add_value(0)
+            'rewards': [],
+            'fps': [],
+            'steps': [],
+            'wins': []}
+        self.metrics['rewards'].append(0)
+        self.metrics['steps'].append(0)
+        self.metrics['fps'].append(0)
         self.state = None
         self.tic = time.perf_counter()
         self.callbacks = [key if val is True else "" for key, val in self.instance.config['logging']['metrics'].items()]
@@ -236,23 +210,18 @@ class Env(GymEnv):
 
     def update_metrics(self, ret):
         reward, done, info = ret[1:]
-        self.metrics['rewards'].vals[-1] += reward
-        self.metrics['steps'].vals[-1] += 1
+        self.metrics['rewards'][-1] += reward
+        self.metrics['steps'][-1] += 1
         toc = time.perf_counter()
         dif = toc - self.tic
         self.tic = toc
-        self.metrics['fps'].add_value(round(1 / dif, 4))
+        self.metrics['fps'].append(round(1 / dif, 4))
         if done:
-            self.metrics['wins'].add_value(info['won'])
-            # self.metrics['win rate'].add_value(
-            #     self.metrics['number of wins'].get_value() * 100 / len(self.metrics['number of wins'].vals))
-            # wins_over_x = self.metrics['number of wins'].get_over_last(self.metrics['win rate over x'].count_val)
-            # self.metrics['win rate over x'].add_value(
-            #     wins_over_x.count(self.metrics['number of wins'].count_val) * 100 / len(wins_over_x))
-            self.metrics['rewards'].vals[-1] /= self.metrics['steps'].vals[-1]
-            self.metrics['rewards'].add_value(0)
-            self.metrics['steps'].add_value(0)
-            self.metrics['fps'].vals = [0]
+            self.metrics['wins'].append(info['won'])
+            self.metrics['rewards'][-1] /= self.metrics['steps'][-1]
+            self.metrics['rewards'].append(0)
+            self.metrics['steps'].append(0)
+            self.metrics['fps'] = [0]
             if self.win_rates is not None:
                 self.win_rates.append(self.latest_data['win rate'])
             if self.win_rates_over_x is not None:
@@ -268,8 +237,7 @@ class Env(GymEnv):
 
     def get_metrics_vals(self):
         ret = {}
-        for func in self.callback_func():
-            val = func()
+        for val in self.callback_func():
             ret[val[1]] = val[0]
         return ret
 
@@ -287,25 +255,80 @@ class Env(GymEnv):
         return self.state
 
     def get_callback_func(self):
-        funcs = []
-        funcs.append(lambda: (self.metrics['rewards'].vals[-1], 'avg episode reward'))
-        funcs.append(lambda: (
-            np.round(np.sum(self.metrics['fps'].vals[-len(self.metrics['fps'].vals):]) / len(self.metrics['fps'].vals),
-                     4),
-            'fps'))
-        funcs.append(lambda: (len(self.metrics['steps'].vals), 'number of episodes'))
-        funcs.append(lambda: (self.metrics['steps'].vals[-1], 'number of steps'))
-        funcs.append(lambda: (self.metrics['wins'].vals.count(True), 'number of wins'))
-        funcs.append(lambda: (
-            round(100 * self.metrics['wins'].vals.count(True) / max(len(self.metrics['wins'].vals), 1), 4), 'win rate'))
+        funcs = [lambda: (self.metrics['rewards'][-1], 'avg episode reward'),
+                 lambda: (np.round(np.average(self.metrics['fps'][-min(len(self.metrics['fps']), 10):]), 4), 'fps'),
+                 lambda: (len(self.metrics['steps']), 'number of episodes'),
+                 lambda: (self.metrics['steps'][-1], 'number of steps'),
+                 lambda: (self.metrics['wins'].count(True), 'number of wins'), lambda: (
+                round(100 * self.metrics['wins'].count(True) / max(len(self.metrics['wins']), 1), 4), 'win rate'),
+                 ]
 
         def func():
-            amount = min(len(self.metrics['wins'].vals), 100)
-            return round(100 * self.metrics['wins'].vals[-amount:].count(True) / max(amount, 1), 4), 'win rate over x'
+            amount = min(len(self.metrics['wins']), 100)
+            return np.round(100 * self.metrics['wins'][-amount:].count(True) / max(amount, 1), 4), 'win rate over x'
 
         funcs.append(func)
 
-        return lambda: [x for x in funcs]
+        return lambda: [x() for x in funcs]
+
+    def draw_additional_info(self):
+        # drawing the
+        window = tk.Tk()
+        window.iconphoto(False, tk.PhotoImage(file=self.instance.icon))
+        episode_num = self.latest_data['number of episodes']
+        window.title(f"Episode {episode_num}, Step {self.latest_data['number of steps']}")
+
+        def graph():
+            win_rates = self.win_rates_over_x
+            plt.plot(range(episode_num - len(win_rates), episode_num),
+                     win_rates)
+            plt.xlabel('episode number')
+            plt.ylabel('win rate %')
+            plt.title(
+                f"win rates over the last {min(len(win_rates), 100)} episodes of the last {len(win_rates)} episodes")
+            plt.xlim(left=0)
+            plt.ylim(bottom=0)
+            plt.show()
+            plt.plot(range(episode_num - 1), self.win_rates)
+            plt.xlabel('episode number')
+            plt.ylabel('win rate %')
+            plt.title('win rates over the last {} episodes'.format(episode_num))
+            plt.xlim(left=0)
+            plt.ylim(bottom=0)
+            plt.show()
+
+        def info():
+            def ret():
+                window.destroy()
+                self.draw_additional_info()
+
+            for slave in window.pack_slaves():
+                slave.destroy()
+            frame = tk.Frame(window)
+            ret = tk.Button(master=frame, text='Return', command=ret)
+            ret.grid(row=0, column=0)
+            exit = tk.Button(master=frame, text='Exit', command=window.destroy)
+            exit.grid(row=0, column=1)
+            y = 0
+            for key, val in self.instance.info.items():
+                label = tk.Label(master=window, text=f"{key}:{val}")
+                label.grid(row=y, column=0)
+                y += 1
+            frame.grid(row=y + 1, column=0)
+            window.update()
+
+        frame = tk.Frame(window)
+        text = self.get_metrics_string()
+        label = tk.Label(window, text=text)
+        label.pack()
+        button = tk.Button(frame, text="Graph", command=graph)
+        button.grid(row=0, column=0)
+        button = tk.Button(frame, text="Info", command=info)
+        button.grid(row=0, column=1)
+        button = tk.Button(frame, text="Exit", command=window.destroy)
+        button.grid(row=0, column=2)
+        frame.pack()
+        window.mainloop()
 
 
 class Memory:

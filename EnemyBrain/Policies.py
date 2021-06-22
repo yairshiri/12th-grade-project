@@ -1,5 +1,5 @@
 import numpy as np
-from GameManager import boltzmann
+from utils import boltzmann
 
 
 class EpsGreedy:
@@ -33,6 +33,7 @@ class EpsGreedyBoltzmann(EpsGreedy):
         self._update_eps()
         if np.random.random() < self.epsilon:
             p = boltzmann(q_vals,self.epsilon)
+            print(q_vals)
             return np.random.choice(self.num_actions, p=p)
         else:
             return np.argmax(q_vals)

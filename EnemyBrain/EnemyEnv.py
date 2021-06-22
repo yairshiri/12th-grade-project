@@ -34,7 +34,7 @@ class EnemyEnv(Env):
         title = f"Episode {self.latest_data['number of episodes']}."
         # if we have a privious episode to display
         if self.latest_data['number of episodes'] > 1:
-            title += f" Episode {self.latest_data['number of episodes'] - 1} was a {'win' if self.metrics['wins'].vals[-1] else 'lost'}."
+            title += f" Episode {self.latest_data['number of episodes'] - 1} was a {'win' if self.metrics['wins'][-1] else 'lost'}."
         title += f" {self.enemy.instance.agent_name} on {self.enemy.instance.map_name}."
         pg.display.set_caption(title)
 
@@ -54,37 +54,6 @@ class EnemyEnv(Env):
 
         pg.display.flip()
         pg.event.pump()
-
-    def draw_additional_info(self):
-        # drawing the
-        window = tk.Tk()
-        window.iconphoto(False, tk.PhotoImage(file=self.enemy.instance.icon))
-        episode_num = self.latest_data['number of episodes']
-        window.title(f"Episode {episode_num}, Step {self.latest_data['number of steps']}")
-
-        def graph():
-            win_rates = self.win_rates_over_x
-            plt.plot(range(episode_num - len(win_rates), episode_num),
-                     win_rates)
-            plt.xlabel('episode number')
-            plt.ylabel('win rate %')
-            plt.title(
-                f"win rates over the last {min(len(win_rates), 100)} episodes of the last {len(win_rates)} episodes")
-            plt.show()
-            plt.plot(range(episode_num - 1), self.win_rates)
-            plt.xlabel('episode number')
-            plt.ylabel('win rate %')
-            plt.title('win rates over the last {} episodes'.format(episode_num))
-            plt.show()
-
-        text = self.get_metrics_string()
-        label = tk.Label(window, text=text)
-        label.pack()
-        button = tk.Button(window, text="Graph", command=graph)
-        button.pack()
-        button = tk.Button(window, text="Done", command=window.destroy)
-        button.pack()
-        window.mainloop()
 
     def set_state(self):
         enemy_pos = self.enemy.get_pos()

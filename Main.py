@@ -1,17 +1,34 @@
-import GameManager
+import os
+import psutil
 import pygame as pg
 import dataSaver
-from EnemyBrain import Brain
 from Option_gui import Menu
+from utils import progression_bar, alert, load_content
+
+
+@progression_bar
+def get_agent():
+    from EnemyBrain.EnemyEnv import EnemyEnv
+    name = dataSaver.DataSaver.get_instance().config['agent']['type']
+    try:
+        env = EnemyEnv()
+        exec(f"from EnemyBrain.Agent import {name} as Agent", globals())
+        agent = Agent(env)
+        return agent
+    except Exception as e:
+        alert(f"Couldn't import the {name} agent")
+        current_system_pid = os.getpid()
+        ThisSystem = psutil.Process(current_system_pid)
+        ThisSystem.terminate()
+
 
 instance = dataSaver.DataSaver.get_instance()
 
-GameManager.load_content()
+load_content()
 
 menu = Menu(instance.config)
 
-agent = Brain.get_agent()
-
+agent = get_agent()
 # loop over episodes
 while True:
     # resetting for a new episode
@@ -19,6 +36,7 @@ while True:
     # checking if the training portion has ended and switching to testing
     if agent.mode == 'training' and not agent.check_stop():
         agent.mode = 'testing'
+        alert(f"Won!\n{agent.env.get_metrics_string()}Switching to testing from training and saving!")
         agent.save()
     # the step loop
     while True:
@@ -51,4 +69,3 @@ while True:
 
         # update state and action
         state = next_state
-

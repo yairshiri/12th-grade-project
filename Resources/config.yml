@@ -27,6 +27,7 @@ agent:
     max win rate: 0
     max win rate over x: 100.0
     to meet: 1
+  type: DQN
   use sensors: false
 environment:
   max steps per episode: 700
@@ -52,7 +53,5 @@ logging:
     win rate: true
     win rate over x: true
 paths:
-  agent name: DQN_Agent
   algorithem name: player algorithem
-  environment name: EnemyEnv
   maze name: weird 30x30

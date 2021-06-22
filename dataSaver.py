@@ -6,7 +6,7 @@ import yaml
 class DataSaver:
     __instance__ = None
     config = yaml.safe_load(open(os.path.join(r"Resources", "config.yml")))
-    agent_name = config['paths']['agent name']
+    agent_name = config['agent']['type']
     map_name = config['paths']['maze name']
     STRtree = None
     screen_size = (config['game']['screen size']['width'], config['game']['screen size']['height'])
@@ -17,9 +17,14 @@ class DataSaver:
     enemy_pos = None
     wall_img = None
     screen = None
+    info = {'Algorithm': config['agent']['type'],
+            'Policy': config['agent']['policy']['type'],
+            'Memory': config['agent']['replay buffer']['type'],
+            'map': config['paths']['maze name']}
+
     walls = []
     window_limit = None
-    icon = None
+    icon = os.path.join(r"Resources\Sprites", "icon.png")
     agent_hyperparameters = config['agent']
     background_img = None
     if agent_hyperparameters['number of actions'] == 4:
@@ -48,7 +53,7 @@ class DataSaver:
         if DataSaver.__instance__ is None:
             DataSaver.__instance__ = self
         else:
-            raise Exception("You cannot create another SingletonGovt class")
+            raise Exception("You cannot create another Singleton class")
 
     @staticmethod
     def get_instance():

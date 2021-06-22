@@ -90,7 +90,7 @@ class Menu:
             self.window.title(self.tree.name)
             self.frame = tk.Frame(master=self.window)
             self.frame.grid(row=0, column=0)
-        self.window.iconphoto(False, tk.PhotoImage(file=instance.icon))
+            self.window.iconphoto(False, tk.PhotoImage(file=instance.icon))
 
         width = ceil(sqrt(len(self.tree.value.values())))
         width = max(width, 2)
