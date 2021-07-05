@@ -1,3 +1,4 @@
+import math
 import time
 
 import pygame as pg
@@ -24,10 +25,9 @@ def squash(values, limit):
 
 
 def boltzmann(values, tau=1):
-    print(values)
-    values = squash(np.atleast_2d(values ), 10)
-    exp = np.exp(values / tau)
-    p = exp / np.sum(exp)
+    values = squash(np.atleast_2d(values), 10)
+    exp = np.exp(values/tau)
+    p = np.round(exp/np.sum(exp),10)
     print(exp,"\n",p,"\n\n")
     return p[0]
 
