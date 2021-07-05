@@ -26,7 +26,7 @@ class Player(Entity):
         # args is the helping variable for the user to use
         self.args = []
         # loading the player algorithm:
-        path = os.path.join(f"{self.instance.config['paths']['algorithem name']}.py")
+        path = os.path.join(f"{self.instance.config['paths']['algorithm name']}.py")
         if os.path.exists(path):
             self.algorithm = "".join(open(path, 'r').readlines())
             if "return" in self.algorithm:

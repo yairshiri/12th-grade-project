@@ -32,8 +32,8 @@ agent:
 environment:
   max steps per episode: 700
   starting player pos:
-    x: 10
-    y: 9
+    x: 25
+    y: 23
 game:
   fps cap: 0
   maze shape:
@@ -53,5 +53,5 @@ logging:
     win rate: true
     win rate over x: true
 paths:
-  algorithem name: player algorithem
+  algorithm name: player algorithm
   maze name: weird 30x30

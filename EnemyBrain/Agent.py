@@ -42,6 +42,7 @@ class Q(Agent):
                 return
             for key, val in policy.items():
                 self.Q[key] = policy[key]
+        self.env.instance.info['Loaded brain'] = name
 
 
 class SARSA(Q):
@@ -134,6 +135,7 @@ class DQN(Agent):
     @safe_load(f_type="h5")
     def load(self,name):
         self.model.load_weights(f"{name}.h5")
+        self.env.instance.info['Loaded brain'] = name
 
     def save(self):
         name = get_var("Choose saving name")

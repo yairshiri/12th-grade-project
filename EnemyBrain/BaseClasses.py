@@ -23,7 +23,6 @@ class Entity:
         # getting an instance of the data saver
         self.instance = dataSaver.DataSaver.get_instance()
 
-        # because the x,y we get are maze-scaled values, we need to scale them to the window
         self.x = x
         self.y = y
 
@@ -166,7 +165,7 @@ class Agent:
             if self.limits[key] > 0:
                 if value >= self.limits[key]:
                     # checking win rates only after the 50th episode.
-                    if not ('win rate' in key and trackers['max episodes'] < 50):
+                    if not ('win rate' in key and trackers['max episodes'] < 10):
                         stop += 1
                     # if we've met the required amount of limits
                     if stop >= self.limits['to meet']:
@@ -178,6 +177,7 @@ class Env(GymEnv):
 
     def __init__(self):
         self.instance = dataSaver.DataSaver.get_instance()
+        self.graph_interval = self.instance.config['logging']['graph interval']
         self.metrics = {
             'rewards': [],
             'fps': [],
@@ -264,8 +264,8 @@ class Env(GymEnv):
                  ]
 
         def func():
-            amount = min(len(self.metrics['wins']), 100)
-            return np.round(100 * self.metrics['wins'][-amount:].count(True) / max(amount, 1), 4), 'win rate over x'
+            amount = min(len(self.metrics['wins']), self.graph_interval)
+            return np.round(self.graph_interval * self.metrics['wins'][-amount:].count(True) / max(amount, 1), 4), 'win rate over x'
 
         funcs.append(func)
 
@@ -285,7 +285,7 @@ class Env(GymEnv):
             plt.xlabel('episode number')
             plt.ylabel('win rate %')
             plt.title(
-                f"win rates over the last {min(len(win_rates), 100)} episodes of the last {len(win_rates)} episodes")
+                f"win rates over the last {min(len(win_rates), self.graph_interval)} episodes of the last {len(win_rates)} episodes")
             plt.xlim(left=0)
             plt.ylim(bottom=0)
             plt.show()

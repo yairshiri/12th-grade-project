@@ -55,9 +55,10 @@ def get_walls():
             label.pack()
             entry.pack()
             window.mainloop()
-            # save the walls (the maze) to a file with the chosen name
-            with open(f"{name.get()}.pickle", 'wb') as f:
-                pickle.dump(walls, f)
+            if name.get() != "":
+                # save the walls (the maze) to a file with the chosen name if the name is not empty
+                with open(f"{name.get()}.pickle", 'wb') as f:
+                    pickle.dump(walls, f)
             quit()
         elif event.type == pg.MOUSEBUTTONDOWN:
             # if the mouse button was clicked, save the position as the starting position

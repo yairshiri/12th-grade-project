@@ -1,5 +1,3 @@
-import numpy as np
-
 dx = e_pos[0] - p_pos[0]
 dy = e_pos[1] - p_pos[1]
 if (dy**2+dx**2)<64:

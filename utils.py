@@ -10,6 +10,7 @@ from shapely.geometry import polygon
 import tkinter as tk
 import threading
 import queue
+from sklearn.preprocessing import MinMaxScaler
 
 instance = dataSaver.DataSaver.get_instance()
 
@@ -19,15 +20,15 @@ def softmax(values, limit):
 
 
 def squash(values, limit):
-    if np.max(values) == 0:
-        return values
-    return (values / np.max(values)) * min(limit, np.max(values))
+    return np.array([(x-np.min(values))/(np.max(values)-np.min(values)) for x in values])*limit
 
 
 def boltzmann(values, tau=1):
-    values = squash(np.atleast_2d(values / tau), 10)
-    exp = np.exp(values)
+    print(values)
+    values = squash(np.atleast_2d(values ), 10)
+    exp = np.exp(values / tau)
     p = exp / np.sum(exp)
+    print(exp,"\n",p,"\n\n")
     return p[0]
 
 
@@ -57,6 +58,30 @@ def alert(text):
     window.mainloop()
 
 
+def ask(text, options):
+    window = tk.Tk()
+    window.title(text)
+    window.iconphoto(False, tk.PhotoImage(file=instance.icon))
+    label = tk.Label(window, text=text)
+    label.grid(row=0, column=0)
+    x, y = 0, 0
+    ret = []
+    frame = tk.Frame(window)
+
+    def ret_func(index):
+        ret.append(index)
+        ret.append(options[index])
+        window.destroy()
+
+    for i, option in enumerate(options):
+        button = tk.Button(frame, text=option, name=option.lower(), command=lambda idx=i: ret_func(idx))
+        button.grid(row=y, column=x)
+        x += 1
+    frame.grid(row=1, column=0)
+    window.mainloop()
+    return ret
+
+
 def safe_load(f_type):
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -64,7 +89,7 @@ def safe_load(f_type):
             if name == "":
                 return
             if os.path.exists(f"{name}.{f_type}"):
-                func(name)
+                func(args[0], name)
             else:
                 alert(f"File {name}.{f_type} not found!")
 

@@ -3,14 +3,14 @@ import psutil
 import pygame as pg
 import dataSaver
 from Option_gui import Menu
-from utils import progression_bar, alert, load_content
+from utils import progression_bar, alert, load_content,ask
 
 
 @progression_bar
 def get_agent():
-    from EnemyBrain.EnemyEnv import EnemyEnv
     name = dataSaver.DataSaver.get_instance().config['agent']['type']
     try:
+        from EnemyBrain.EnemyEnv import EnemyEnv
         env = EnemyEnv()
         exec(f"from EnemyBrain.Agent import {name} as Agent", globals())
         agent = Agent(env)
@@ -29,15 +29,19 @@ load_content()
 menu = Menu(instance.config)
 
 agent = get_agent()
+
+switch = True
 # loop over episodes
 while True:
     # resetting for a new episode
     state = agent.env.reset()
     # checking if the training portion has ended and switching to testing
-    if agent.mode == 'training' and not agent.check_stop():
-        agent.mode = 'testing'
-        alert(f"Won!\n{agent.env.get_metrics_string()}Switching to testing from training and saving!")
-        agent.save()
+    if switch and not agent.check_stop():
+        option = ask(f"Won!\n{agent.env.get_metrics_string()}\nDo you want to keep training or start testing?",["Training","Testing"])[1]
+        if option == "Testing":
+            agent.mode = 'testing'
+            agent.save()
+        switch = False
     # the step loop
     while True:
         # checking if the program needs to exit or open certain guis

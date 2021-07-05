@@ -20,7 +20,9 @@ class DataSaver:
     info = {'Algorithm': config['agent']['type'],
             'Policy': config['agent']['policy']['type'],
             'Memory': config['agent']['replay buffer']['type'],
-            'map': config['paths']['maze name']}
+            'Map': config['paths']['maze name'],
+            'Learning rate':config['agent']['hyperparameters']['alpha'],
+            'Discount rate':config['agent']['hyperparameters']['gamma']}
 
     walls = []
     window_limit = None
