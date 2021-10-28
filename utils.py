@@ -21,14 +21,16 @@ def softmax(values, limit):
 
 
 def squash(values, limit):
-    return np.array([(x-np.min(values))/(np.max(values)-np.min(values)) for x in values])*limit
+    return np.array([(x - np.min(values)) / (np.max(values) - np.min(values)) for x in values]) * limit
 
 
 def boltzmann(values, tau=1):
-    values = squash(np.atleast_2d(values), 10)
-    exp = np.exp(values/tau)
-    p = np.round(exp/np.sum(exp),10)
-    print(exp,"\n",p,"\n\n")
+    tau = max(0.3, tau)
+    values = squash(np.atleast_2d(values), 5)
+    # values = values / np.min(values)
+    exp = np.exp(values / tau)
+    p = np.round(exp / np.sum(exp), 10)
+    print(exp, "\n", p, "\n\n")
     return p[0]
 
 

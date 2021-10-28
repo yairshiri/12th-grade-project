@@ -22,7 +22,8 @@ class DataSaver:
             'Memory': config['agent']['replay buffer']['type'],
             'Map': config['paths']['maze name'],
             'Learning rate':config['agent']['hyperparameters']['alpha'],
-            'Discount rate':config['agent']['hyperparameters']['gamma']}
+            'Discount rate':config['agent']['hyperparameters']['gamma'],
+            'Using sensors':config['agent']['use sensors']}
 
     walls = []
     window_limit = None

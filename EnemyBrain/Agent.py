@@ -58,10 +58,15 @@ class SARSA(Q):
 class DQN(Agent):
     def _build_model(self):
         model = tf.keras.models.Sequential()
+
+        model.add(tf.keras.layers.BatchNormalization())
+
         # adding the layers in the amounts specified
         for amount in self.hyperparameters['model']['layer sizes']:
             model.add(tf.keras.layers.Dense(amount, activation='selu',
                                             kernel_initializer=tf.keras.initializers.RandomNormal()))
+            model.add(tf.keras.layers.BatchNormalization())
+
         # the output layer
         model.add(tf.keras.layers.Dense(self.num_of_actions, activation='linear'))
         model.build(input_shape=(1, self.env.observation_space))

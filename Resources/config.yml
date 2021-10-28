@@ -1,6 +1,6 @@
 agent:
   hyperparameters:
-    alpha: 0.0005
+    alpha: 0.005
     gamma: 0.9
   mode: training
   model:
@@ -28,7 +28,7 @@ agent:
     max win rate over x: 100.0
     to meet: 1
   type: DQN
-  use sensors: false
+  use sensors: true
 environment:
   max steps per episode: 700
   starting player pos:
