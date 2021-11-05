@@ -21,6 +21,8 @@ def softmax(values, limit):
 
 
 def squash(values, limit):
+    if np.min(values) == np.max(values):
+        return values
     return np.array([(x - np.min(values)) / (np.max(values) - np.min(values)) for x in values]) * limit
 
 
@@ -30,7 +32,7 @@ def boltzmann(values, tau=1):
     # values = values / np.min(values)
     exp = np.exp(values / tau)
     p = np.round(exp / np.sum(exp), 10)
-    print(exp, "\n", p, "\n\n")
+    # print(exp, "\n", p, "\n\n")
     return p[0]
 
 
@@ -153,3 +155,13 @@ def load_content():
     instance.screen = pg.display.set_mode(instance.screen_size)
     pg.display.set_icon(pg.image.load(instance.icon))
     pg.font.init()
+
+
+def time_me(f):
+    def wrapper(*args, **kwargs):
+        t = time.perf_counter()
+        ret = f(*args,**kwargs)
+        t = time.perf_counter() - t
+        print(t)
+        return ret
+    return wrapper

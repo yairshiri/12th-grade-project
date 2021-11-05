@@ -11,7 +11,7 @@ class EnemyEnv(Env):
     BLACK = (0, 0, 0)
     CLOCK = pg.time.Clock()
     POSITIVE_REWARD = 500
-    NEGATIVE_REWARD = 0
+    NEGATIVE_REWARD = -1
 
     def __init__(self):
         super().__init__()
@@ -34,7 +34,7 @@ class EnemyEnv(Env):
         title = f"Episode {self.latest_data['number of episodes']}."
         # if we have a privious episode to display
         if self.latest_data['number of episodes'] > 1:
-            title += f" Episode {self.latest_data['number of episodes'] - 1} was a {'win' if self.metrics['wins'][-1] else 'lost'}."
+            title += f" Episode {self.latest_data['number of episodes'] - 1} was a {'win' if self.metrics['wins'][-1] else 'loss'}."
         title += f" {self.enemy.instance.agent_name} on {self.enemy.instance.map_name}."
         pg.display.set_caption(title)
 
