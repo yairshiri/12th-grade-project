@@ -9,17 +9,17 @@ from utils import progression_bar, alert, load_content,ask
 @progression_bar
 def get_agent():
     name = dataSaver.DataSaver.get_instance().config['agent']['type']
-    try:
-        from EnemyBrain.EnemyEnv import EnemyEnv
-        env = EnemyEnv()
-        exec(f"from EnemyBrain.Agent import {name} as Agent", globals())
-        agent = Agent(env)
-        return agent
-    except Exception as e:
-        alert(f"Couldn't import the {name} agent")
-        current_system_pid = os.getpid()
-        ThisSystem = psutil.Process(current_system_pid)
-        ThisSystem.terminate()
+    # try:
+    from EnemyBrain.EnemyEnv import EnemyEnv,EnemyEnvTwo
+    env = EnemyEnvTwo()
+    exec(f"from EnemyBrain.Agent import {name} as Agent", globals())
+    agent = Agent(env)
+    return agent
+    # except Exception as e:
+    #     alert(f"Couldn't import the {name} agent")
+    #     current_system_pid = os.getpid()
+    #     ThisSystem = psutil.Process(current_system_pid)
+    #     ThisSystem.terminate()
 
 
 instance = dataSaver.DataSaver.get_instance()

@@ -63,6 +63,7 @@ class DQN(Agent):
     def _build_model(self):
         model = tf.keras.models.Sequential()
 
+
         model.add(tf.keras.layers.BatchNormalization())
 
         # adding the layers in the amounts specified
@@ -73,7 +74,7 @@ class DQN(Agent):
 
         # the output layer
         model.add(tf.keras.layers.Dense(self.num_of_actions, activation='linear'))
-        model.build(input_shape=(1, self.env.observation_space))
+        model.build(input_shape=self.env.observation_space)
         return model
 
     def __init__(self, env):
@@ -136,7 +137,9 @@ class DQN(Agent):
         return np.abs(actual_values - pred[0][actions])[0]
 
     def action(self, state):
-        return self.policy.select_action(q_vals=self.predict(state))
+        qvals = self.predict(state)
+        print(qvals)
+        return self.policy.select_action(q_vals=qvals)
 
     def predict(self, states):
         return self.model(np.atleast_2d(states))
@@ -158,7 +161,7 @@ class PG(Agent):
     def _build_model(self):
         model = tf.keras.models.Sequential()
 
-        model.add(tf.keras.layers.BatchNormalization())
+        model.add(tf.keras.layers.BatchNormalization(input_shape=(self.env.observation_space,)))
 
         # adding the layers in the amounts specified
         for amount in self.hyperparameters['model']['layer sizes']:
@@ -168,7 +171,7 @@ class PG(Agent):
 
         # the output layer
         model.add(tf.keras.layers.Dense(self.num_of_actions, activation='softmax'))
-        model.build(input_shape=(1, self.env.observation_space))
+        model.compile(tf.keras.optimizers.Adam(self.alpha),'categorical_crossentropy')
         return model
 
     def __init__(self, env):
@@ -176,14 +179,13 @@ class PG(Agent):
         self.gamma = self.hyperparameters['hyperparameters']['gamma']
         self.alpha = self.hyperparameters['hyperparameters']['alpha']
         self.num_of_actions = self.hyperparameters['number of actions']
-        self.optimizer = tf.keras.optimizers.Adam(self.alpha)
         self.model = self._build_model()
-        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': []}
+        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': [],'grads':[],'probs':[]}
         self.tape = tf.GradientTape()
 
     # resetting the memory
     def reset(self):
-        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': []}
+        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': [],'grads':[],'probs':[]}
         self.tape = tf.GradientTape()
 
     def learn(self, state, action, reward, next_state, done=None):
@@ -192,16 +194,34 @@ class PG(Agent):
         self.memory['actions'].append(action)
         if done:
             episode_len = len(self.memory['rewards'])
-            discounted_Rs = [self.memory['rewards'][t] * self.gamma ** t for t in range(episode_len)]
-            sums = [np.sum(discounted_Rs[i:]) for i in range(episode_len)]
+            # discounted_Rs = [self.memory['rewards'][t] * self.gamma ** t for t in range(episode_len)]
+            discounted_Rs = self.discount_rewards(self.memory['rewards'])
             # getting the loss
-            with tf.GradientTape() as tape:
-                logs_p = tf.math.reduce_sum(self.model(np.atleast_2d(self.memory['states']))* tf.keras.utils.to_categorical(self.memory['actions'], self.num_of_actions),axis=1)
-                loss = tf.math.multiply(logs_p,sums)
+            # logs_p = tf.math.reduce_sum(self.model(np.atleast_2d(self.memory['states']))* tf.keras.utils.to_categorical(self.memory['actions'], self.num_of_actions),axis=1)
+            # loss = -tf.math.multiply(logs_p,discounted_Rs)
             # calcing and applying gradiants
-            grads = tape.gradient(loss, self.model.trainable_variables)
-            self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+            grads = np.vstack(self.memory['grads'])
+            grads = [grads[i]*discounted_Rs[i] for i in range(episode_len)]
+            grads = self.alpha*np.vstack([grads]) + self.memory['probs']
+            stets = np.vstack(self.memory['states'])
+            self.model.train_on_batch(np.atleast_2d(self.memory['states']), grads)
             self.reset()
+
+    def discount_rewards(self, rewards):
+        discounted_rewards = []
+        cumulative_total_return = 0
+        # iterate the rewards backwards and and calc the total return
+        for reward in rewards[::-1]:
+            cumulative_total_return = (cumulative_total_return * self.gamma) + reward
+            discounted_rewards.insert(0, cumulative_total_return)
+
+        # normalize discounted rewards
+        mean_rewards = np.mean(discounted_rewards)
+        std_rewards = np.std(discounted_rewards)
+        norm_discounted_rewards = (discounted_rewards -
+                                   mean_rewards) / (std_rewards + 1e-7)  # avoiding zero div
+
+        return norm_discounted_rewards
 
     # def learn(self, state, action, reward, next_state, done=None):
     #     self.memory['rewards'].append(reward)
@@ -223,10 +243,15 @@ class PG(Agent):
     def action(self, state):
         p = self.model(np.atleast_2d(state))
         dist = tfp.distributions.Categorical(probs=p)
-        print(p)
-        p = np.array(p)
-        action = np.random.choice(self.num_of_actions, p=p[0])
+        p = np.array(p)[0]
+        # action = np.random.choice(self.num_of_actions, p=p[0])
+        action = self.policy.select_action(q_vals=p)
         self.memory['log probs'].append(dist.log_prob(action))
+        self.memory['probs'].append(p)
+        grad = np.zeros(self.num_of_actions)
+        grad[action] = 1
+        grad -= p/np.sum(p)
+        self.memory['grads'].append(grad)
         return action
 
     # def get_loss(self, state, action):

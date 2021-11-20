@@ -152,6 +152,8 @@ def load_content():
     instance.window_limit = polygon.Polygon(
         [(0, 0), (instance.maze_shape[0], 0), instance.maze_shape, (0, instance.maze_shape[1])])
 
+    instance.set_map()
+
     instance.screen = pg.display.set_mode(instance.screen_size)
     pg.display.set_icon(pg.image.load(instance.icon))
     pg.font.init()

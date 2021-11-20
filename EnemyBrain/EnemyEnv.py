@@ -4,6 +4,7 @@ import Player
 import pygame as pg
 import matplotlib.pyplot as plt
 import tkinter as tk
+import numpy as np
 
 
 class EnemyEnv(Env):
@@ -21,7 +22,7 @@ class EnemyEnv(Env):
         if self.enemy.instance.config['agent']['use sensors'] is True:
             self.enemy.set_sensors()
         self.state = self.set_state()
-        self.observation_space = len(self.state)
+        self.observation_space = (1,len(self.state))
         # saving the hotkeys text so we won't have to generate it each render call
         font = pg.font.SysFont('Arial', 20)
         self.HOTKEYS_TEXT = font.render("Options: O. Load brain: L. Save Brain: S. See tracked data: G.", True,
@@ -93,3 +94,17 @@ class EnemyEnv(Env):
 
     def touches(self):
         return self.enemy.rect.centroid.distance(self.player.rect.centroid)
+
+
+class EnemyEnvTwo(EnemyEnv):
+    def __init__(self):
+        super(EnemyEnvTwo, self).__init__()
+        self.observation_space = (1,self.instance.maze_shape[0] * self.instance.maze_shape[1])
+
+    def set_state(self):
+        map = np.array(self.instance.taken_pixels)
+        enemy_pos = self.enemy.get_pos()
+        player_pos = self.player.get_pos()
+        map[enemy_pos[0]][enemy_pos[1]] = 2
+        map[player_pos[0]][player_pos[1]] = 3
+        return map.flatten('C')

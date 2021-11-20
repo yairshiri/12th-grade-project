@@ -1,6 +1,6 @@
 agent:
   hyperparameters:
-    alpha: 5.0e-05
+    alpha: 0.005
     gamma: 0.9
   mode: training
   model:
@@ -15,7 +15,7 @@ agent:
       decay: 0.99999
       min: 0.1
       starting: 1.0
-    type: bepsgreedy
+    type: epsgreedy
   replay buffer:
     batch size: 128
     max size: 100000
@@ -27,7 +27,7 @@ agent:
     max win rate: 0
     max win rate over x: 100.0
     to meet: 1
-  type: PG
+  type: DQN
   use sensors: false
 environment:
   max steps per episode: 700

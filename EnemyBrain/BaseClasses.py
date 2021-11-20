@@ -16,12 +16,13 @@ from utils import alert
 
 class Entity:
     def __init__(self, x, y, sprite_name=None):
+        # getting an instance of the data saver
+        self.instance = dataSaver.DataSaver.get_instance()
+
         # if a sprite name is specified, load and save it
         if sprite_name is not None:
             self.sprite = pg.transform.scale(pg.image.load(os.path.join(r"/Resources/Sprites", f"{sprite_name}.png")),
                                              self.instance.draw_scaler)
-        # getting an instance of the data saver
-        self.instance = dataSaver.DataSaver.get_instance()
 
         self.x = x
         self.y = y
