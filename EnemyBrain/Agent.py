@@ -63,7 +63,6 @@ class DQN(Agent):
     def _build_model(self):
         model = tf.keras.models.Sequential()
 
-
         model.add(tf.keras.layers.BatchNormalization())
 
         # adding the layers in the amounts specified
@@ -171,7 +170,7 @@ class PG(Agent):
 
         # the output layer
         model.add(tf.keras.layers.Dense(self.num_of_actions, activation='softmax'))
-        model.compile(tf.keras.optimizers.Adam(self.alpha),'categorical_crossentropy')
+        model.compile(tf.keras.optimizers.Adam(self.alpha), 'categorical_crossentropy')
         return model
 
     def __init__(self, env):
@@ -180,12 +179,12 @@ class PG(Agent):
         self.alpha = self.hyperparameters['hyperparameters']['alpha']
         self.num_of_actions = self.hyperparameters['number of actions']
         self.model = self._build_model()
-        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': [],'grads':[],'probs':[]}
+        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': [], 'grads': [], 'probs': []}
         self.tape = tf.GradientTape()
 
     # resetting the memory
     def reset(self):
-        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': [],'grads':[],'probs':[]}
+        self.memory = {'rewards': [], 'log probs': [], 'states': [], 'actions': [], 'grads': [], 'probs': []}
         self.tape = tf.GradientTape()
 
     def learn(self, state, action, reward, next_state, done=None):
@@ -201,8 +200,8 @@ class PG(Agent):
             # loss = -tf.math.multiply(logs_p,discounted_Rs)
             # calcing and applying gradiants
             grads = np.vstack(self.memory['grads'])
-            grads = [grads[i]*discounted_Rs[i] for i in range(episode_len)]
-            grads = self.alpha*np.vstack([grads]) + self.memory['probs']
+            grads = [grads[i] * discounted_Rs[i] for i in range(episode_len)]
+            grads = self.alpha * np.vstack([grads]) + self.memory['probs']
             stets = np.vstack(self.memory['states'])
             self.model.train_on_batch(np.atleast_2d(self.memory['states']), grads)
             self.reset()
@@ -250,7 +249,7 @@ class PG(Agent):
         self.memory['probs'].append(p)
         grad = np.zeros(self.num_of_actions)
         grad[action] = 1
-        grad -= p/np.sum(p)
+        grad -= p / np.sum(p)
         self.memory['grads'].append(grad)
         return action
 

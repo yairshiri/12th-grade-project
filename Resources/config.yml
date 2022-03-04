@@ -30,6 +30,7 @@ agent:
   type: DQN
   use sensors: false
 environment:
+  type: EnemyEnv
   max steps per episode: 700
   starting player pos:
     x: 25
