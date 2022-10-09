@@ -5,6 +5,23 @@ import pygame as pg
 import matplotlib.pyplot as plt
 import tkinter as tk
 import numpy as np
+from PIL import Image
+from utils import time_me
+
+
+def state_wrapper(f):
+    def wrapper(*args, **kwargs):
+        self: EnemyEnv = args[0]
+        value = f(self, *args[1:], **kwargs)
+        try:
+            state = self.state
+            state = np.delete(state, -1, axis=0)
+            state = np.insert(state, 0, value, axis=0)
+        except Exception as e:
+            state = np.array([value for i in range(self.STATE_FRAMES)])
+        return state
+
+    return wrapper
 
 
 class EnemyEnv(Env):
@@ -13,6 +30,7 @@ class EnemyEnv(Env):
     CLOCK = pg.time.Clock()
     POSITIVE_REWARD = 500
     NEGATIVE_REWARD = -1
+    STATE_FRAMES = 5
 
     def __init__(self):
         super().__init__()
@@ -21,12 +39,24 @@ class EnemyEnv(Env):
                                     self.enemy.instance.config['environment']['starting player pos']['y'])
         if self.enemy.instance.config['agent']['use sensors'] is True:
             self.enemy.set_sensors()
+        if self.instance.config['environment']['use conv']:
+            self.set_state = self.set_state_conv
         self.state = self.set_state()
-        self.observation_space = (1,len(self.state))
+        self.observation_space = self.state.shape
         # saving the hotkeys text so we won't have to generate it each render call
         font = pg.font.SysFont('Arial', 20)
-        self.HOTKEYS_TEXT = font.render("Options: O. Load brain: L. Save Brain: S. See tracked data: G.", True,
-                                        self.BLACK)
+        # creating the default image to be displayed every frame
+        self.base_surface = pg.Surface(self.instance.screen_size)
+        # adding the background
+        self.base_surface.blit(self.instance.background_img, (0, 0))
+        # adding the walls
+        for wall in self.instance.walls:
+            for loc in wall.locs():
+                self.base_surface.blit(self.instance.wall_img, loc)
+        # adding the hotkey text
+        self.enemy.instance.screen.blit(
+            font.render("Options: O. Load brain: L. Save Brain: S. See tracked data: G.", True,
+                        self.BLACK), (0, 0))
 
     def _reset(self):
         self.enemy.reset()
@@ -40,22 +70,18 @@ class EnemyEnv(Env):
         pg.display.set_caption(title)
 
     def _render(self):
-        if self.enemy.instance.config['game']['fps cap'] > 0:
-            self.CLOCK.tick(self.enemy.instance.config['game']['fps cap'])
+        self.CLOCK.tick(self.enemy.instance.config['game']['fps cap'])
+        self.metrics['fps'][-1] = self.CLOCK.get_fps()
         pg.display.update()
-        self.enemy.instance.screen.blit(self.enemy.instance.background_img, (0, 0))
+        self.enemy.instance.screen.blit(self.base_surface, (0, 0))
         pg.draw.rect(self.enemy.instance.screen, self.enemy.color,
                      (self.enemy.pos_to_scale(), self.enemy.instance.draw_scaler))
-        for wall in self.enemy.instance.walls:
-            for loc in wall.locs():
-                self.enemy.instance.screen.blit(self.enemy.instance.wall_img, loc)
         pg.draw.rect(self.enemy.instance.screen, self.BLACK,
                      (self.player.pos_to_scale(), self.enemy.instance.draw_scaler))
-        self.enemy.instance.screen.blit(self.HOTKEYS_TEXT, (0, 0))
-
         pg.display.flip()
         pg.event.pump()
 
+    @state_wrapper
     def set_state(self):
         enemy_pos = self.enemy.get_pos()
         player_pos = self.player.get_pos()
@@ -63,7 +89,19 @@ class EnemyEnv(Env):
         if self.enemy.sensors is not None:
             sensors = tuple(x[0] for x in self.enemy.sensors.get_info())
             ret += sensors
-        return ret
+        return np.array(ret)
+
+    @state_wrapper
+    def set_state_conv(self):
+        map = self.instance.taken_pixels
+        enemy_pos = self.enemy.get_pos()
+        player_pos = self.player.get_pos()
+        map[enemy_pos[0]][enemy_pos[1]] = [0, 0, 0]
+        map[player_pos[0]][player_pos[1]] = [255, 0, 0]
+        return map / 255.0  # scaling the values to be between 0 and 1
+
+    def set_state_conv2(self):
+        return np.atleast_3d(pg.surfarray.array3d(self.instance.screen).sum(-1))
 
     def act(self, dir_num):
         ret = self.instance.switcher[dir_num]
@@ -94,17 +132,3 @@ class EnemyEnv(Env):
 
     def touches(self):
         return self.enemy.rect.centroid.distance(self.player.rect.centroid)
-
-
-class EnemyEnvTwo(EnemyEnv):
-    def __init__(self):
-        super(EnemyEnvTwo, self).__init__()
-        self.observation_space = (1,self.instance.maze_shape[0] * self.instance.maze_shape[1])
-
-    def set_state(self):
-        map = np.array(self.instance.taken_pixels)
-        enemy_pos = self.enemy.get_pos()
-        player_pos = self.player.get_pos()
-        map[enemy_pos[0]][enemy_pos[1]] = 2
-        map[player_pos[0]][player_pos[1]] = 3
-        return map.flatten('C')

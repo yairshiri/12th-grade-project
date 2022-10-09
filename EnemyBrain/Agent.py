@@ -1,4 +1,6 @@
 from collections import defaultdict
+
+import keras.layers
 import numpy as np
 from EnemyBrain.BaseClasses import Agent
 import tensorflow as tf
@@ -6,6 +8,7 @@ import pickle
 from EnemyBrain import Memory
 from utils import get_var, safe_load, time_me
 import tensorflow_probability as tfp
+from tensorflow.keras import layers
 
 
 # Q-learning agent
@@ -58,22 +61,48 @@ class SARSA(Q):
                 reward + self.gamma * self.Q[next_state][self.action(next_state)] - self.Q[state][action])
 
 
+class XYTOintLayer(keras.layers.Layer):
+    def __init__(self):
+        super(XYTOintLayer, self).__init__()
+
+    def call(self, inputs, **kwargs):
+        xmove = tf.math.argmax(inputs[0])
+        ymove = tf.math.argmax(inputs[1])
+        return xmove, ymove
+
+
 # DQN agent
 class DQN(Agent):
     def _build_model(self):
-        model = tf.keras.models.Sequential()
-
-        model.add(tf.keras.layers.BatchNormalization())
-
-        # adding the layers in the amounts specified
-        for amount in self.hyperparameters['model']['layer sizes']:
-            model.add(tf.keras.layers.Dense(amount, activation='selu',
-                                            kernel_initializer=tf.keras.initializers.RandomNormal()))
-            model.add(tf.keras.layers.BatchNormalization())
+        inputs = tf.keras.Input(self.env.observation_space)
+        # if we want to use a conv net, use a convnet. otherwise use the specified network
+        if self.env.instance.config['environment']['use conv']:
+            layer = layers.Conv2D(32, 3, activation="relu")
+            x = layers.TimeDistributed(layer)(inputs)
+            layer = layers.Conv2D(32, 3, activation="relu")
+            x = layers.TimeDistributed(layer)(x)
+            layer = layers.Conv2D(32, 3, activation="relu")
+            x = layers.TimeDistributed(layer)(x)
+            layer = layers.MaxPool2D((2, 2))
+            x = layers.TimeDistributed(layer)(x)
+            layer = layers.Flatten()
+            x = layers.TimeDistributed(layer)(x)
+            x = layers.LSTM(64, return_sequences=False)(x)
+            x = layers.Dense(100)(x)
+        else:
+            x = layers.LSTM(100, return_sequences=False)(inputs)
+            # layer = tf.keras.layers.Dense(self.hyperparameters['model']['layer sizes'][0], activation='relu')
+            # x = layers.TimeDistributed(layer)(inputs)
+            for amount in self.hyperparameters['model']['layer sizes']:
+                layer = tf.keras.layers.Dense(amount, activation='relu')
+                x = layer(x)
 
         # the output layer
-        model.add(tf.keras.layers.Dense(self.num_of_actions, activation='linear'))
-        model.build(input_shape=self.env.observation_space)
+        outputs = tf.keras.layers.Dense(self.num_of_actions, activation='linear')(x)
+        # movey = tf.keras.layers.Dense(self.num_of_actions, activation='linear')(x)
+
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        print(model.summary())
         return model
 
     def __init__(self, env):
@@ -104,7 +133,7 @@ class DQN(Agent):
             self.memory.add_exp(state, action, reward, next_state, done)
         if not self.memory.is_ready():
             return
-        if self.env.latest_data['number of steps'] % self.hyperparameters['model']['learn interval'] == 0:
+        if self.env.latest_data['number of steps'] % self.learn_interval == 0:
             if self.memory_mode == 'PER':
                 exp, idx, is_weights = self.memory.get_batch()
                 states, actions, rewards, states_next, dones = zip(*exp)
@@ -137,11 +166,14 @@ class DQN(Agent):
 
     def action(self, state):
         qvals = self.predict(state)
-        print(qvals)
         return self.policy.select_action(q_vals=qvals)
 
     def predict(self, states):
-        return self.model(np.atleast_2d(states))
+        if not isinstance(states, np.ndarray):
+            states = np.array(states)
+        if states.ndim == len(self.env.observation_space):
+            states = np.array([states])
+        return self.model(states)
 
     @safe_load(f_type="h5")
     def load(self, name):
@@ -160,13 +192,10 @@ class PG(Agent):
     def _build_model(self):
         model = tf.keras.models.Sequential()
 
-        model.add(tf.keras.layers.BatchNormalization(input_shape=(self.env.observation_space,)))
-
         # adding the layers in the amounts specified
         for amount in self.hyperparameters['model']['layer sizes']:
             model.add(tf.keras.layers.Dense(amount, activation='selu',
-                                            kernel_initializer=tf.keras.initializers.RandomNormal()))
-            model.add(tf.keras.layers.BatchNormalization())
+                                            kernel_initializer=tf.keras.initializers.lecun_normal()))
 
         # the output layer
         model.add(tf.keras.layers.Dense(self.num_of_actions, activation='softmax'))

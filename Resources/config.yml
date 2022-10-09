@@ -6,18 +6,18 @@ agent:
   model:
     copy interval: 1000
     layer sizes:
-    - 64
-    - 64
+    - 512
+    - 100
     learn interval: 4
-  number of actions: 8
+  number of actions: 9
   policy:
     epsilon:
       decay: 0.99999
       min: 0.1
       starting: 1.0
-    type: epsgreedy
+    type: bepsgreedy
   replay buffer:
-    batch size: 128
+    batch size: 32
     max size: 100000
     min size: 1000
     type: per
@@ -30,16 +30,16 @@ agent:
   type: DQN
   use sensors: false
 environment:
-  type: EnemyEnv
-  max steps per episode: 700
+  max steps per episode: 500
   starting player pos:
-    x: 25
-    y: 23
+    x: 9
+    y: 9
+  use conv: false
 game:
   fps cap: 0
   maze shape:
-    height: 30
-    width: 30
+    height: 20
+    width: 20
   screen size:
     height: 460
     width: 680
@@ -55,4 +55,4 @@ logging:
     win rate over x: true
 paths:
   algorithm name: player algorithm
-  maze name: weird 30x30
+  maze name: empty 20x20

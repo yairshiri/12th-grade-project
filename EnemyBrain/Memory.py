@@ -103,6 +103,7 @@ class Uniform(Memory):
         ids = self.get_ids()
         dones = np.asarray([self.memory['done'][i] for i in ids])
         states = np.asarray([self.memory['s'][i] for i in ids])
+        # states = np.asarray([[self.memory['s'][i - j] for j in range(4)] for i in ids])
         actions = np.asarray([self.memory['a'][i] for i in ids])
         rewards = np.asarray([self.memory['r'][i] for i in ids])
         states_next = np.asarray([self.memory['s2'][i] for i in ids])

@@ -33,15 +33,17 @@ class DataSaver:
     icon = os.path.join(r"Resources\Sprites", "icon.png")
     agent_hyperparameters = config['agent']
     background_img = None
-    if agent_hyperparameters['number of actions'] == 4:
+    if agent_hyperparameters['number of actions'] == 5:
         switcher = [
+            [0,0],
             [0, 1],
             [1, 0],
             [-1, 0],
             [0, -1]
         ]
-    elif agent_hyperparameters['number of actions'] == 8:
+    elif agent_hyperparameters['number of actions'] == 9:
         switcher = [
+            [0,0],
             [1, 0],
             [0, 1],
             [1, 1],
@@ -74,10 +76,10 @@ class DataSaver:
 
     def set_map(self):
         instance = DataSaver.get_instance()
-        map = [[0 for  x in range(instance.maze_shape[0])] for y in range(instance.maze_shape[1])]
+        map = np.full(list(instance.maze_shape)+[3],255)
         scalar = instance.draw_scaler
         for wall in instance.walls:
             for loc in wall.locs():
                 x, y = int(loc[0]/scalar[0]),int(loc[1]/scalar[1])
-                map[y][x] = 1
+                map[y][x] = [0,255,0]
         instance.taken_pixels = map

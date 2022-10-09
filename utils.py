@@ -28,8 +28,8 @@ def squash(values, limit):
 
 def boltzmann(values, tau=1):
     tau = max(0.3, tau)
-    values = squash(np.atleast_2d(values), 5)
-    # values = values / np.min(values)
+    # normalizing the values
+    values -= np.max(values)
     exp = np.exp(values / tau)
     p = np.round(exp / np.sum(exp), 10)
     # print(exp, "\n", p, "\n\n")
@@ -155,6 +155,7 @@ def load_content():
     instance.set_map()
 
     instance.screen = pg.display.set_mode(instance.screen_size)
+
     pg.display.set_icon(pg.image.load(instance.icon))
     pg.font.init()
 

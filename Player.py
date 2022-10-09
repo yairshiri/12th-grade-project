@@ -41,7 +41,7 @@ class Player(Entity):
         self.act_on_dir(direction)
 
     def _reset(self):
-        pass
+        self.set_pos(self.generate_pos())
 
     def update_instance(self):
         self.instance.player_pos = self.get_pos()
